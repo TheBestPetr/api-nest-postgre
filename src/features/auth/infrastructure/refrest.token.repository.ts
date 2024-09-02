@@ -1,22 +1,24 @@
-import { InjectModel } from '@nestjs/mongoose';
-import {
-  RefreshTokenEntity,
-  RefreshTokenBlacklistModelType,
-} from '../domain/refresh.token.entity';
+import { Injectable } from '@nestjs/common';
+import { InjectDataSource } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
+@Injectable()
 export class RefreshTokenRepository {
-  constructor(
-    @InjectModel(RefreshTokenEntity.name)
-    private RefreshTokenBlacklistModel: RefreshTokenBlacklistModelType,
-  ) {}
+  constructor(@InjectDataSource() private dataSource: DataSource) {}
   async addTokenInBlacklist(token: string) {
-    await this.RefreshTokenBlacklistModel.create({ token: token });
+    await this.dataSource.query(`
+        INSERT INTO public."refreshTokenBlacklist"(
+            token
+        )
+        VALUES (${token});
+    `);
   }
 
-  async isTokenInBlacklist(token: string): Promise<boolean> {
-    const isTokenExist = await this.RefreshTokenBlacklistModel.findOne({
-      token: token,
-    }).exec();
+  async isTokenInBlacklist(token: string) {
+    const isTokenExist = await this.dataSource.query(`
+        SELECT token
+            FROM public."refreshTokenBlacklist"
+            WHERE "token" = '${token}'`);
     return !!isTokenExist;
   }
 }

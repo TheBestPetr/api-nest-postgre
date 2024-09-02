@@ -1,3 +1,4 @@
+/*
 import { Injectable } from '@nestjs/common';
 import { PostsRepository } from '../infrastructure/posts.repository';
 import { ObjectId } from 'mongodb';
@@ -135,3 +136,4 @@ export class PostsService {
     return updateLikeInfo && updateLikesCount;
   }
 }
+*/

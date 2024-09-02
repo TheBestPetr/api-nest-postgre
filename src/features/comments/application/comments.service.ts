@@ -1,3 +1,4 @@
+/*
 import { Injectable } from '@nestjs/common';
 import { CommentsRepository } from '../infrastructure/comments.repository';
 import { CommentInputDto } from '../api/dto/input/comment.input.dto';
@@ -117,3 +118,4 @@ export class CommentsService {
     return updateLikeInfo && updateLikesCount;
   }
 }
+*/

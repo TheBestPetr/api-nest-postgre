@@ -1,3 +1,4 @@
+/*
 import {
   Controller,
   Get,
@@ -120,3 +121,4 @@ export class CommentsController {
     }
   }
 }
+*/

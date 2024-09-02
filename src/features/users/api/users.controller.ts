@@ -26,7 +26,7 @@ export class UsersController {
 
   @Get()
   @HttpCode(200)
-  async findUsers(@Query() inputQuery: UserInputQueryDto) {
+  async findUsers(@Query() inputQuery: Partial<UserInputQueryDto>) {
     const query = sortNPagingUserQuery(inputQuery);
     const users = await this.usersQueryRepository.findUsers(query);
     return users;

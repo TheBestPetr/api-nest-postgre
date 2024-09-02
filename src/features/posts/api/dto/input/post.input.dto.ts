@@ -1,4 +1,3 @@
-import { SortDirection } from 'mongodb';
 import {
   IsNotEmpty,
   IsString,
@@ -46,7 +45,7 @@ export class PostInputQueryDto {
   pageNumber: number;
   pageSize: number;
   sortBy: string;
-  sortDirection: SortDirection;
+  sortDirection: 1 | -1 | 'asc' | 'desc' | 'ascending' | 'descending';
 }
 
 export class PostInputBlogDto {
