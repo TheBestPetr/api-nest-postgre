@@ -5,7 +5,7 @@ config();
 
 export const SETTINGS = {
   PORT: process.env.APP_PORT || '',
-  MONGO_URL: process.env.MONGO_URL || '',
+  POSTGRESQL_URL: process.env.POSTGRESQL_URL || '',
   NODEMAILER: {
     USER: process.env.EMAIL_ACCOUNT_USER,
     PASSWORD: process.env.EMAIL_ACCOUNT_PASSWORD,

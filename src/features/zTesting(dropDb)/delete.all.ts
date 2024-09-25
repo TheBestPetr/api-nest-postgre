@@ -14,9 +14,9 @@ export class DeleteAllController {
         public.posts,
         public.comments,
         public.users,
-        public.securityDevices,
-        public.refreshTokenBlacklist,
-        public.reqCount,
+        public."securityDevices",
+        public."refreshTokenBlacklist",
+        public."reqCount"
          CASCADE
       `);
   }

@@ -5,20 +5,11 @@ import { DeviceModule } from './features/securityDevices/device.module';
 import { UserModule } from './features/users/user.module';
 import { DeleteAllController } from './features/zTesting(dropDb)/delete.all';
 
-/*const blogsProviders = [BlogsRepository, BlogsService, BlogsQueryRepository];
-
-const postsProviders = [
+/*const postsProviders = [
   PostsRepository,
   PostsService,
   PostsQueryRepository,
   blogIdIsExist,
-];
-
-const usersProviders = [
-  UsersRepository,
-  UsersService,
-  UsersQueryRepository,
-  PostsLikeInfoRepository,
 ];
 
 const commentsProvider = [
@@ -26,12 +17,9 @@ const commentsProvider = [
   CommentsRepository,
   CommentsQueryRepository,
   CommentsLikeInfoRepository,
-];
-
-const devicesProviders = [DevicesService, DevicesRepository];*/
+];*/
 
 @Module({
-  // Регистрация модулей
   imports: [
     TypeOrmModule.forRoot({
       type: 'postgres',
