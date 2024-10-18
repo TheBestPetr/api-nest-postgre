@@ -17,9 +17,9 @@ export class UsersQueryRepository {
         WHERE "id" = '${userId}';`,
     );
     return {
-      email: user.email,
-      login: user.login,
-      userId: user.id,
+      email: user[0].email,
+      login: user[0].login,
+      userId: user[0].id,
     };
   }
 }

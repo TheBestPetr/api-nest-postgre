@@ -140,7 +140,9 @@ export class AuthController {
       input.recoveryCode,
     );
     if (!isNewPasswordConfirm) {
-      throw new BadRequestException();
+      throw new BadRequestException([
+        { message: 'Some error, try later', field: 'email' },
+      ]);
     }
   }
 

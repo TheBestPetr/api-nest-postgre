@@ -33,13 +33,13 @@ export class AuthService {
     const user = await this.usersRepository.findUserByLoginOrEmail(
       input.loginOrEmail,
     );
-    if (user) {
+    if (user.length > 0) {
       const isPassCorrect = await this.bcryptService.checkPassword(
         input.password,
-        user.passwordHash,
+        user[0].passwordHash,
       );
       if (isPassCorrect) {
-        return user.id;
+        return user[0].id;
       }
     }
     return null;
@@ -123,6 +123,9 @@ export class AuthService {
       await this.refreshTokenRepository.isTokenInBlacklist(refreshToken);
     const userId = await this.jwtService.getUserIdByToken(refreshToken);
     const deviceId = await this.jwtService.getDeviceIdByToken(refreshToken);
+    if (!deviceId) {
+      return null;
+    }
     const oldIat = await this.jwtService.getTokenIatNExp(refreshToken);
     const isDeviceExist =
       await this.devicesRepository.findSessionByDeviceId(deviceId);
@@ -154,7 +157,9 @@ export class AuthService {
         confirmationCode,
       );
     if (user) {
-      await this.usersRepository.updateAccessUserEmailConfirmation(user.userId);
+      await this.usersRepository.updateAccessUserEmailConfirmation(
+        user[0].userId,
+      );
       return true;
     }
     return false;
@@ -191,14 +196,15 @@ export class AuthService {
 
   async passwordRecovery(email: string): Promise<boolean> {
     const user = await this.usersRepository.findUserByLoginOrEmail(email);
-    if (user) {
+    if (user.length > 0) {
       const userPasswordRecovery = new PasswordRecovery();
-      userPasswordRecovery.userId = user.id;
+      userPasswordRecovery.userId = user[0].id;
       userPasswordRecovery.recoveryCode = randomUUID().toString();
       userPasswordRecovery.expirationDate = add(new Date(), {
         hours: 1,
         minutes: 1,
       }).toISOString();
+      console.log(userPasswordRecovery);
       const result = await this.usersRepository.passwordRecoveryConfirmation(
         email,
         userPasswordRecovery,
@@ -208,7 +214,7 @@ export class AuthService {
           .sendPasswordRecoveryEmail(
             email,
             'password recovery code',
-            user.passwordRecovery.recoveryCode!,
+            userPasswordRecovery.recoveryCode!,
           )
           .catch((error) => {
             console.error(error);
@@ -225,15 +231,11 @@ export class AuthService {
   ): Promise<boolean> {
     const user =
       await this.usersRepository.findUserByPasswordRecoveryCode(recoveryCode);
-    if (user) {
-      const userPasswordRecovery = new PasswordRecovery();
-      userPasswordRecovery.recoveryCode = undefined;
-      userPasswordRecovery.expirationDate = undefined;
+    if (user.length > 0) {
       const newPasswordHash = await this.bcryptService.genHash(password);
       await this.usersRepository.updatePasswordRecovery(
-        user.id,
+        user[0].userId,
         newPasswordHash,
-        userPasswordRecovery,
       );
       return true;
     }

@@ -16,5 +16,6 @@ import { UsersQueryRepository } from './infrastructure/users.query.repository';
     UsersService,
     UsersQueryRepository,
   ],
+  exports: [UsersRepository],
 })
 export class UserModule {}

@@ -18,13 +18,13 @@ export class EmailConfirmation {
 @Entity()
 export class PasswordRecovery {
   @Column({ type: 'uuid' })
-  userId: string | undefined;
+  userId: string | null;
 
   @Column({ type: 'varchar' })
-  recoveryCode: string | undefined;
+  recoveryCode: string | null;
 
   @Column({ type: 'timestamp with time zone' })
-  expirationDate: string | undefined;
+  expirationDate: string | null;
 }
 
 @Entity()

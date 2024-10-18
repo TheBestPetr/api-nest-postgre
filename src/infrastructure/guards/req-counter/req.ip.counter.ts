@@ -18,17 +18,17 @@ export class ReqIpCounter implements CanActivate {
     await this.dataSource.query(`
         INSERT INTO public."reqCount"(
             ip, "URL", date)
-            VALUES ('${ip}', '${originalUrl}', ${new Date()});
+            VALUES ('${ip}', '${originalUrl}', '${new Date().toISOString()}');
     `);
 
     const currentDate = new Date();
     const tenSecondsAgo = currentDate.setSeconds(currentDate.getSeconds() - 10);
     const reqCount = await this.dataSource.query(`
         SELECT COUNT(*)
-            FROM public.reqCount
+            FROM public."reqCount"
             WHERE "ip" = '${req.ip}' AND
                   "URL" = '${req.originalUrl}' AND
-                  "date" >= ${new Date(tenSecondsAgo)}
+                  "date" >= '${new Date(tenSecondsAgo).toISOString()}'
     `);
 
     if (reqCount > 5) {

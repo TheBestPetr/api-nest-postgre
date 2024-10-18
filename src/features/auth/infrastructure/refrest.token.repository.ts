@@ -10,7 +10,7 @@ export class RefreshTokenRepository {
         INSERT INTO public."refreshTokenBlacklist"(
             token
         )
-        VALUES (${token});
+        VALUES ('${token}');
     `);
   }
 
@@ -19,6 +19,6 @@ export class RefreshTokenRepository {
         SELECT token
             FROM public."refreshTokenBlacklist"
             WHERE "token" = '${token}'`);
-    return !!isTokenExist;
+    return !!isTokenExist[0];
   }
 }

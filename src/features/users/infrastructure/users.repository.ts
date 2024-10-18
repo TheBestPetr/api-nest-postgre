@@ -22,8 +22,12 @@ export class UsersRepository {
                 '${inputUser.login}',
                 '${inputUser.passwordHash}',
                 '${inputUser.email}',
-                 ${inputUser.createdAt});
+                '${inputUser.createdAt}');
     `);
+    const createdUserId = await this.dataSource.query(`
+        SELECT id
+            FROM public.users
+            WHERE "login" = '${inputUser.login}' AND "passwordHash" = '${inputUser.passwordHash}'`);
     await this.dataSource.query(`
         INSERT INTO public."usersEmailConfirmation"(
             "userId",
@@ -31,9 +35,9 @@ export class UsersRepository {
             "expirationDate",
             "isConfirmed")
             VALUES (
-                '${createdUser.id}',
+                '${createdUserId[0].id}',
                 '${inputEmailConfirmation.confirmationCode}',
-                 ${inputEmailConfirmation.expirationDate},
+                '${inputEmailConfirmation.expirationDate}',
                  ${inputEmailConfirmation.isConfirmed});
     `);
     return createdUser;
@@ -85,7 +89,7 @@ export class UsersRepository {
   async findUserByEmailConfirmationCode(
     code: string,
   ): Promise<EmailConfirmation | null> {
-    return this.dataSource.query(`
+    const user = await this.dataSource.query(`
         SELECT 
             "userId", 
             "confirmationCode", 
@@ -94,16 +98,22 @@ export class UsersRepository {
             FROM public."usersEmailConfirmation"
             WHERE "confirmationCode" = '${code}'
     `);
+    if (user[0].isConfirmed === true) {
+      return null;
+    }
+    if (user.length > 0) {
+      return user;
+    }
+    return null;
   }
 
   async updateAccessUserEmailConfirmation(id: string): Promise<boolean> {
     const result = await this.dataSource.query(`
         UPDATE public."usersEmailConfirmation"
             SET 
-                "confirmationCode" = 'null', 
                 "expirationDate" = null, 
                 "isConfirmed" = true
-                WHERE "id" = '${id}';`);
+                WHERE "userId" = '${id}';`);
     return !!result;
   }
 
@@ -133,25 +143,29 @@ export class UsersRepository {
     inputPasswordRecovery: PasswordRecovery,
   ) {
     return this.dataSource.query(`
-    UPDATE public."usersPasswordRecovery"
-            SET "confirmationCode" = '${inputPasswordRecovery.recoveryCode}', 
-            "expirationDate" = ${inputPasswordRecovery.expirationDate}
-            WHERE "email" = '${email}';
+    INSERT INTO public."usersPasswordRecovery"(
+        "userId", 
+        "recoveryCode", 
+        "expirationDate"
+        )
+        VALUES(
+        '${inputPasswordRecovery.userId}',
+        '${inputPasswordRecovery.recoveryCode}',
+        '${inputPasswordRecovery.expirationDate}'
+        )
     `);
   }
 
   async updatePasswordRecovery(
     userId: string,
     newPasswordHash: string,
-    input: PasswordRecovery,
   ): Promise<boolean> {
     const isPasswordHashUpdated = await this.dataSource.query(`
       UPDATE public.users
             SET "passwordHash" = '${newPasswordHash}'
             WHERE "id" = '${userId}';`);
     const isPasswordRecoveryUpdated = await this.dataSource.query(`
-        UPDATE public."usersPasswordRecovery"
-            SET "recoveryCode" = '${input.recoveryCode}', "expirationDate" = ${input.expirationDate}
+        DELETE FROM public."usersPasswordRecovery"
             WHERE "userId" = '${userId}';`);
     return isPasswordHashUpdated || isPasswordRecoveryUpdated;
   }

@@ -2,7 +2,6 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
-  //ValidationArguments,
 } from 'class-validator';
 import { UsersRepository } from '../../features/users/infrastructure/users.repository';
 
@@ -35,9 +34,9 @@ export class loginIsExist implements ValidatorConstraintInterface {
 
   async validate(login: string) {
     const user = await this.usersRepository.findUserByLoginOrEmail(login);
-    if (user) {
+    if (user.length > 0) {
       throw new BadRequestException([
-        { message: 'Login does not exist', field: 'login' },
+        { message: 'Login is already exist', field: 'login' },
       ]);
     }
     return true;
@@ -51,9 +50,9 @@ export class emailIsExist implements ValidatorConstraintInterface {
 
   async validate(email: string) {
     const user = await this.usersRepository.findUserByLoginOrEmail(email);
-    if (user) {
+    if (user.length > 0) {
       throw new BadRequestException([
-        { message: 'Email does not exist', field: 'email' },
+        { message: 'Email is already exist', field: 'email' },
       ]);
     }
     return true;
@@ -68,6 +67,13 @@ export class emailConfirmationCodeIsExist
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async validate(confirmationCode: string) {
+    /*if (
+      !confirmationCode.match(
+        '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
+      )
+    ) {
+      throw new BadRequestException([{ message: 'Some Error', field: 'code' }]);
+    }*/
     const userEmailConfirmation =
       await this.usersRepository.findUserByEmailConfirmationCode(
         confirmationCode,

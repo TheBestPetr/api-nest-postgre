@@ -18,18 +18,18 @@ export class DevicesRepository {
         INSERT INTO public."securityDevices"(
             "userId", 
             "deviceId", 
-            iat, 
+            "iat", 
             "deviceName", 
-            ip, 
-            exp
+            "ip", 
+            "exp"
         )
             VALUES (
                 '${input.userId}', 
                 '${input.deviceId}', 
-                ${input.iat}, 
+                '${input.iat}', 
                 '${input.deviceName}', 
                 '${input.ip}', 
-                ${input.exp});
+                '${input.exp}');
             `);
     return !!result;
   }
@@ -42,8 +42,8 @@ export class DevicesRepository {
   ): Promise<boolean> {
     const result = await this.dataSource.query(`
         UPDATE public."securityDevices"
-            SET iat = ${iat}, 
-                exp = ${exp}
+            SET iat = '${iat}', 
+                exp = '${exp}'
             WHERE "deviceId" = '${deviceId}' AND 
                   "iat" = '${oldIat}';
             `);
@@ -74,10 +74,10 @@ export class DevicesRepository {
         SELECT 
             "userId", 
             "deviceId",
-            iat, 
+            "iat", 
             "deviceName", 
-            ip, 
-            exp
+            "ip", 
+            "exp"
             FROM public."securityDevices"
             WHERE "userId" = '${userId}'`);
     if (!userId || !activeSessions || isTokenInBlackList) {
@@ -92,6 +92,9 @@ export class DevicesRepository {
   }
 
   async findSessionByDeviceId(deviceId: string): Promise<string | null> {
+    if (!deviceId) {
+      return null;
+    }
     const session = await this.dataSource.query(`
         SELECT 
             "userId", 
@@ -102,6 +105,9 @@ export class DevicesRepository {
             exp
             FROM public."securityDevices"
             WHERE "deviceId" = '${deviceId}'`);
-    return session.userId;
+    if (session.length > 0) {
+      return session[0].userId;
+    }
+    return null;
   }
 }

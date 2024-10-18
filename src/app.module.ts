@@ -4,6 +4,14 @@ import { AuthModule } from './features/auth/auth.module';
 import { DeviceModule } from './features/securityDevices/device.module';
 import { UserModule } from './features/users/user.module';
 import { DeleteAllController } from './features/zTesting(dropDb)/delete.all';
+import {
+  emailConfirmationCodeIsExist,
+  emailIsExist,
+  emailResendingIsEmailConfirmed,
+  loginIsExist,
+  passwordRecoveryCodeIsExist,
+} from './infrastructure/decorators/auth.custom.decorator';
+import { ReqIpCounter } from './infrastructure/guards/req-counter/req.ip.counter';
 
 /*const postsProviders = [
   PostsRepository,
@@ -36,7 +44,14 @@ const commentsProvider = [
     UserModule,
   ],
 
-  providers: [],
+  providers: [
+    loginIsExist,
+    emailIsExist,
+    passwordRecoveryCodeIsExist,
+    emailConfirmationCodeIsExist,
+    emailResendingIsEmailConfirmed,
+    ReqIpCounter,
+  ],
 
   controllers: [DeleteAllController],
 })
