@@ -167,21 +167,21 @@ export class AuthService {
 
   async confirmUserEmailResending(email: string): Promise<boolean> {
     const user = await this.usersRepository.findUserByLoginOrEmail(email);
-    if (user) {
+    if (user.length > 0) {
       const userEmailConfirmation = new EmailConfirmation();
-      userEmailConfirmation.confirmationCode = randomUUID();
+      userEmailConfirmation.confirmationCode = randomUUID().toString();
       userEmailConfirmation.expirationDate = add(new Date(), {
         hours: 1,
         minutes: 1,
       }).toISOString();
       const result = await this.usersRepository.updateUserEmailConfirmation(
-        user.id,
+        user[0].id,
         userEmailConfirmation,
       );
       if (result) {
         this.nodemailerService
           .sendRegistrationEmail(
-            user.email,
+            user[0].email,
             'User registration new code',
             userEmailConfirmation.confirmationCode,
           )

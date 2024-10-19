@@ -8,7 +8,45 @@ import { UserOutputQueryDto } from '../api/dto/output/user.output.dto';
 @Injectable()
 export class UsersQueryRepository {
   constructor(@InjectDataSource() private dataSource: DataSource) {}
-  async findUsers(query: UserInputQueryDto) /*: Promise<UserOutputQueryDto>*/ {}
+  async findUsers(query: UserInputQueryDto): Promise<UserOutputQueryDto> {
+    const searchWithEmail = query.searchEmailTerm
+      ? `%${query.searchEmailTerm}%`
+      : '%';
+    const searchWithLogin = query.searchLoginTerm
+      ? `%${query.searchLoginTerm}%`
+      : '%';
+    const items = await this.dataSource.query(
+      `SELECT id, login, "passwordHash", email, "createdAt"
+        FROM public.users
+        WHERE "email" ILIKE $1 OR "login" ILIKE $2
+        ORDER BY "createdAt" ${query.sortBy === 'asc' ? 'ASC' : 'DESC'}
+        LIMIT $3 OFFSET $4`,
+      [
+        searchWithEmail,
+        searchWithLogin,
+        query.pageSize,
+        (query.pageNumber - 1) * query.pageSize,
+      ],
+    );
+    const totalCountResult = await this.dataSource.query(
+      `SELECT COUNT(*) FROM public.users
+        WHERE "email" ILIKE $1 OR "login" ILIKE $2`,
+      [searchWithEmail, searchWithLogin],
+    );
+    const totalCount = parseInt(totalCountResult[0].count, 10);
+    return {
+      pagesCount: Math.ceil(totalCount / query.pageSize),
+      page: query.pageNumber,
+      pageSize: query.pageSize,
+      totalCount: totalCount as number,
+      items: items.map((user) => ({
+        id: user.id,
+        login: user.login,
+        email: user.email,
+        createdAt: user.createdAt,
+      })),
+    };
+  }
 
   async findUserById(userId: string): Promise<AuthIOutputDto> {
     const user = await this.dataSource.query(

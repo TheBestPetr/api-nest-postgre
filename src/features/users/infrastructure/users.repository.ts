@@ -31,23 +31,28 @@ export class UsersRepository {
     await this.dataSource.query(`
         INSERT INTO public."usersEmailConfirmation"(
             "userId",
-            "confirmationCode",
-            "expirationDate",
             "isConfirmed")
             VALUES (
                 '${createdUserId[0].id}',
-                '${inputEmailConfirmation.confirmationCode}',
-                '${inputEmailConfirmation.expirationDate}',
-                 ${inputEmailConfirmation.isConfirmed});
+                '${inputEmailConfirmation.isConfirmed}');
     `);
-    return createdUser;
+    return createdUserId[0].id;
   }
 
   async deleteUser(id: string): Promise<boolean> {
-    return this.dataSource.query(`
-        DELETE FROM public.users
-            WHERE "id" = '${id}';
+    const isUserEmailConfirmationDeleted = await this.dataSource.query(`
+        DELETE FROM public."usersEmailConfirmation"
+            WHERE "userId" = '${id}'
     `);
+    const isUserDeleted = await this.dataSource.query(`
+        DELETE FROM public.users
+            WHERE "id" = '${id}'
+    `);
+    console.log(isUserEmailConfirmationDeleted[0].length > 0);
+    return (
+      isUserEmailConfirmationDeleted[0].length > 0 ||
+      isUserDeleted[0].length > 0
+    );
   }
 
   async findUserByLoginOrEmail(loginOrEmail: string) {
@@ -76,11 +81,11 @@ export class UsersRepository {
             WHERE "login" = '${loginOrEmail}' OR 
                   "email" = '${loginOrEmail}'
     `);
-    if (user) {
+    if (user.length > 0) {
       return this.dataSource.query(`
         SELECT "userId", "confirmationCode", "expirationDate", "isConfirmed"
             FROM public."usersEmailConfirmation"
-            WHERE "userId" = '${user.id}'
+            WHERE "userId" = '${user[0].id}'
         `);
     }
     return false;
@@ -118,15 +123,15 @@ export class UsersRepository {
   }
 
   async updateUserEmailConfirmation(
-    id: string,
+    userId: string,
     inputEmailConfirmation: EmailConfirmation,
   ): Promise<boolean> {
     const result = await this.dataSource.query(`
         UPDATE public."usersEmailConfirmation"
             SET 
                 "confirmationCode" = '${inputEmailConfirmation.confirmationCode}', 
-                "expirationDate" = ${inputEmailConfirmation.expirationDate}
-                WHERE "id" = '${id}';`);
+                "expirationDate" = '${inputEmailConfirmation.expirationDate}'
+                WHERE "userId" = '${userId}';`);
     return !!result;
   }
 

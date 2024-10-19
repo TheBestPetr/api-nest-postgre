@@ -70,6 +70,9 @@ export class DevicesRepository {
     const isTokenInBlackList =
       await this.refreshTokenRepository.isTokenInBlacklist(refreshToken);
     const userId = await this.jwtService.getUserIdByToken(refreshToken);
+    if (!userId) {
+      return null;
+    }
     const activeSessions = await this.dataSource.query(`
         SELECT 
             "userId", 
@@ -80,7 +83,7 @@ export class DevicesRepository {
             "exp"
             FROM public."securityDevices"
             WHERE "userId" = '${userId}'`);
-    if (!userId || !activeSessions || isTokenInBlackList) {
+    if (!activeSessions || isTokenInBlackList) {
       return null;
     }
     return activeSessions.map((device) => ({

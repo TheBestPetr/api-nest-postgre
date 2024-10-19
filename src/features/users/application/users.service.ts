@@ -4,6 +4,7 @@ import { UserInputDto } from '../api/dto/input/user.input.dto';
 import { UserOutputDto } from '../api/dto/output/user.output.dto';
 import { EmailConfirmation, User } from '../domain/user.entity';
 import { BcryptService } from '../../../infrastructure/utils/services/bcrypt.service';
+import { isUUID } from 'class-validator';
 
 @Injectable()
 export class UsersService {
@@ -24,12 +25,12 @@ export class UsersService {
     userEmailConfirmation.expirationDate = null;
     userEmailConfirmation.isConfirmed = true;
 
-    const insertedUser = await this.usersRepository.createUser(
+    const insertedUserId = await this.usersRepository.createUser(
       createdUser,
       userEmailConfirmation,
     );
     return {
-      id: insertedUser.id,
+      id: insertedUserId,
       login: createdUser.login,
       email: createdUser.email,
       createdAt: createdUser.createdAt,

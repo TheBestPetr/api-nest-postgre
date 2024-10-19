@@ -18,8 +18,8 @@ export class BlogsQueryRepository {
         SELECT id, name, description, "websiteUrl", "createdAt", "isMembership"
         FROM public.blogs
         WHERE "name" ILIKE '%${search}%'
-        ORDER BY "createdAt" ${query.sortBy}
-        LIMIT ${query.pageSize} OFFSET ${(query.pageNumber - 1) * query.pageSize}
+        ORDER BY "createdAt" '${query.sortBy}'
+        LIMIT '${query.pageSize}' OFFSET ${(query.pageNumber - 1) * query.pageSize}
     `);
     const totalCount = await this.dataSource.query(
       `SELECT COUNT (*) FROM public.blogs`,

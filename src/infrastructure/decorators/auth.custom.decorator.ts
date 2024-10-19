@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import {
+  isUUID,
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
@@ -13,6 +14,11 @@ export class passwordRecoveryCodeIsExist
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async validate(recoveryCode: string) {
+    if (!isUUID(recoveryCode)) {
+      throw new BadRequestException([
+        { message: 'code must de uuid', field: 'code' },
+      ]);
+    }
     const userPasswordRecovery =
       await this.usersRepository.findUserByPasswordRecoveryCode(recoveryCode);
     if (
@@ -67,13 +73,11 @@ export class emailConfirmationCodeIsExist
   constructor(private readonly usersRepository: UsersRepository) {}
 
   async validate(confirmationCode: string) {
-    /*if (
-      !confirmationCode.match(
-        '/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
-      )
-    ) {
-      throw new BadRequestException([{ message: 'Some Error', field: 'code' }]);
-    }*/
+    if (!isUUID(confirmationCode)) {
+      throw new BadRequestException([
+        { message: 'code must de uuid', field: 'code' },
+      ]);
+    }
     const userEmailConfirmation =
       await this.usersRepository.findUserByEmailConfirmationCode(
         confirmationCode,
@@ -99,7 +103,12 @@ export class emailResendingIsEmailConfirmed
   async validate(email: string) {
     const userEmailConfirmationInfo =
       await this.usersRepository.findUserEmailConfirmationInfo(email);
-    if (userEmailConfirmationInfo.isConfirmed === true) {
+    if (!userEmailConfirmationInfo) {
+      throw new BadRequestException([
+        { message: 'User does not exist', field: 'email' },
+      ]);
+    }
+    if (userEmailConfirmationInfo[0].isConfirmed === true) {
       throw new BadRequestException([
         { message: 'Email is already confirmed', field: 'email' },
       ]);

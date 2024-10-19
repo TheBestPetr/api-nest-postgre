@@ -31,7 +31,7 @@ export class ReqIpCounter implements CanActivate {
                   "date" >= '${new Date(tenSecondsAgo).toISOString()}'
     `);
 
-    if (reqCount > 5) {
+    if (reqCount[0].count > 5) {
       throw new HttpException(
         'Too many requests',
         HttpStatus.TOO_MANY_REQUESTS,
