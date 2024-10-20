@@ -12,7 +12,7 @@ export class UsersRepository {
   constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async createUser(inputUser: User, inputEmailConfirmation: EmailConfirmation) {
-    const createdUser = await this.dataSource.query(`
+    await this.dataSource.query(`
         INSERT INTO public.users(
             login, 
             "passwordHash", 
@@ -48,11 +48,7 @@ export class UsersRepository {
         DELETE FROM public.users
             WHERE "id" = '${id}'
     `);
-    console.log(isUserEmailConfirmationDeleted[0].length > 0);
-    return (
-      isUserEmailConfirmationDeleted[0].length > 0 ||
-      isUserDeleted[0].length > 0
-    );
+    return isUserEmailConfirmationDeleted[1] === 1 || isUserDeleted[1] === 1;
   }
 
   async findUserByLoginOrEmail(loginOrEmail: string) {

@@ -16,10 +16,10 @@ export class UsersQueryRepository {
       ? `%${query.searchLoginTerm}%`
       : '%';
     const items = await this.dataSource.query(
-      `SELECT id, login, "passwordHash", email, "createdAt"
+      `SELECT id, login, email, "createdAt"
         FROM public.users
-        WHERE "email" ILIKE $1 OR "login" ILIKE $2
-        ORDER BY "createdAt" ${query.sortBy === 'asc' ? 'ASC' : 'DESC'}
+        WHERE "login" ILIKE $2 OR "email" ILIKE $1
+        ORDER BY "${query.sortBy}" ${query.sortDirection}, "id" ASC
         LIMIT $3 OFFSET $4`,
       [
         searchWithEmail,

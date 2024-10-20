@@ -29,7 +29,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly usersQueryRepository: UsersQueryRepository,
   ) {}
-  //@UseGuards(ReqIpCounter)
+  @UseGuards(ReqIpCounter)
   @Post('registration')
   @HttpCode(204)
   async userRegistration(@Body() userInputDto: AuthInputRegistrationDto) {
@@ -39,7 +39,7 @@ export class AuthController {
     }
   }
 
-  //@UseGuards(ReqIpCounter)
+  @UseGuards(ReqIpCounter)
   @Post('login')
   @HttpCode(200)
   async loginUser(
@@ -91,7 +91,7 @@ export class AuthController {
     return { accessToken: newTokens.accessToken };
   }
 
-  //@UseGuards(ReqIpCounter)
+  @UseGuards(ReqIpCounter)
   @Post('registration-confirmation')
   @HttpCode(204)
   async userRegistrationConfirmation(
@@ -103,7 +103,7 @@ export class AuthController {
     }
   }
 
-  //@UseGuards(ReqIpCounter)
+  @UseGuards(ReqIpCounter)
   @Post('registration-email-resending')
   @HttpCode(204)
   async userRegistrationEmailResending(
@@ -119,7 +119,7 @@ export class AuthController {
     }
   }
 
-  //@UseGuards(ReqIpCounter)
+  @UseGuards(ReqIpCounter)
   @Post('password-recovery')
   @HttpCode(204)
   async passwordRecovery(@Body() input: AuthInputEmailPasswordRecoveryDto) {
@@ -129,7 +129,7 @@ export class AuthController {
     }
   }
 
-  //@UseGuards(ReqIpCounter)
+  @UseGuards(ReqIpCounter)
   @Post('new-password')
   @HttpCode(204)
   async newPasswordConfirmation(
