@@ -6,19 +6,25 @@ import { DataSource } from 'typeorm';
 export class RefreshTokenRepository {
   constructor(@InjectDataSource() private dataSource: DataSource) {}
   async addTokenInBlacklist(token: string) {
-    await this.dataSource.query(`
+    await this.dataSource.query(
+      `
         INSERT INTO public."refreshTokenBlacklist"(
             token
         )
-        VALUES ('${token}');
-    `);
+        VALUES ($1);
+    `,
+      [token],
+    );
   }
 
   async isTokenInBlacklist(token: string) {
-    const isTokenExist = await this.dataSource.query(`
+    const isTokenExist = await this.dataSource.query(
+      `
         SELECT token
             FROM public."refreshTokenBlacklist"
-            WHERE "token" = '${token}'`);
+            WHERE "token" = $1`,
+      [token],
+    );
     return !!isTokenExist[0];
   }
 }

@@ -18,5 +18,5 @@ export class Blog {
   createdAt: string;
 
   @Column({ type: 'boolean' })
-  isMembership: boolean; // false until hw 24
+  isMembership: boolean;
 }

@@ -1,69 +1,39 @@
-/*
 import { Injectable } from '@nestjs/common';
 import { PostsRepository } from '../infrastructure/posts.repository';
-import { ObjectId } from 'mongodb';
-import {
-  PostInputBlogDto,
-  PostInputDto,
-} from '../api/dto/input/post.input.dto';
+import { PostInputBlogDto } from '../api/dto/input/post.input.dto';
 import { PostOutputDto } from '../api/dto/output/post.output.dto';
 import { BlogsQueryRepository } from '../../blogs/infrastructure/blogs.query.repository';
 import { Post } from '../domain/post.entity';
-import { PostsLikeInfoRepository } from '../infrastructure/posts.like.info.repository';
-import { UsersQueryRepository } from '../../users/infrastructure/users.query.repository';
-import { PostLikeEntity } from '../domain/post.like.entity';
 import { LikeStatus } from '../../../base/types/like.statuses';
+import { PostLikeEntity } from '../domain/post.like.entity';
+import { UsersQueryRepository } from '../../users/infrastructure/users.query.repository';
+import { PostsLikeInfoRepository } from '../infrastructure/posts.like.info.repository';
 
 @Injectable()
 export class PostsService {
   constructor(
     private readonly postsRepository: PostsRepository,
     private readonly blogsQueryRepository: BlogsQueryRepository,
-    private readonly postsLikeInfoRepository: PostsLikeInfoRepository,
     private readonly usersQueryRepository: UsersQueryRepository,
+    private readonly postsLikeInfoRepository: PostsLikeInfoRepository,
   ) {}
-  async createPost(input: PostInputDto): Promise<PostOutputDto> {
-    const blog = await this.blogsQueryRepository.findBlogById(input.blogId);
-    const createdPost = new Post();
-    createdPost.title = input.title;
-    createdPost.shortDescription = input.shortDescription;
-    createdPost.content = input.content;
-    createdPost.blogId = new ObjectId(input.blogId).toString();
-    createdPost.blogName = blog!.name;
-    createdPost.createdAt = new Date().toISOString();
-    createdPost.likesInfo = {
-      likesCount: 0,
-      dislikesCount: 0,
-    };
-    const insertedPost = await this.postsRepository.createPost(createdPost);
-    return {
-      id: insertedPost.id.toString(),
-      title: createdPost.title,
-      shortDescription: createdPost.shortDescription,
-      content: createdPost.content,
-      blogId: createdPost.blogId,
-      blogName: createdPost.blogName,
-      createdAt: createdPost.createdAt,
-      extendedLikesInfo: {
-        likesCount: insertedPost.likesInfo.likesCount,
-        dislikesCount: insertedPost.likesInfo.dislikesCount,
-        myStatus: 'None',
-        newestLikes: [],
-      },
-    };
+  async updatePost(
+    blogId: string,
+    postId: string,
+    input: PostInputBlogDto,
+  ): Promise<boolean> {
+    const blog = await this.blogsQueryRepository.findBlogById(blogId);
+    if (!blog) {
+      return false;
+    }
+    return this.postsRepository.updatePost(blogId, postId, input);
   }
 
-  async updatePost(postId: string, input: PostInputDto): Promise<boolean> {
-    const result = await this.postsRepository.updatePost(postId, input);
-    return result.matchedCount === 1;
+  async deletePost(blogId: string, postId: string): Promise<boolean> {
+    return this.postsRepository.deletePost(blogId, postId);
   }
 
-  async deletePost(postId: string): Promise<boolean> {
-    const result = await this.postsRepository.deletePost(postId);
-    return result.deletedCount === 1;
-  }
-
-  async createPostForBlogIdParams(
+  async createPost(
     blogId: string,
     input: PostInputBlogDto,
   ): Promise<PostOutputDto> {
@@ -72,23 +42,21 @@ export class PostsService {
     createdPost.title = input.title;
     createdPost.shortDescription = input.shortDescription;
     createdPost.content = input.content;
-    createdPost.blogId = new ObjectId(blogId).toString();
+    createdPost.blogId = blog!.id;
     createdPost.blogName = blog!.name;
-    createdPost.createdAt = new Date().toISOString();
-    createdPost.likesInfo = { likesCount: 0, dislikesCount: 0 };
 
     const insertedPost = await this.postsRepository.createPost(createdPost);
     return {
-      id: insertedPost.id.toString(),
-      title: createdPost.title,
-      shortDescription: createdPost.shortDescription,
-      content: createdPost.content,
-      blogId: createdPost.blogId,
-      blogName: createdPost.blogName,
-      createdAt: createdPost.createdAt,
+      id: insertedPost[0].id,
+      title: insertedPost[0].title,
+      shortDescription: insertedPost[0].shortDescription,
+      content: insertedPost[0].content,
+      blogId: insertedPost[0].blogId,
+      blogName: insertedPost[0].blogName,
+      createdAt: insertedPost[0].createdAt,
       extendedLikesInfo: {
-        likesCount: insertedPost.likesInfo.likesCount,
-        dislikesCount: insertedPost.likesInfo.dislikesCount,
+        likesCount: 0,
+        dislikesCount: 0,
         myStatus: 'None',
         newestLikes: [],
       },
@@ -105,21 +73,20 @@ export class PostsService {
       userId,
     );
     const user = await this.usersQueryRepository.findUserById(userId);
-    if (!postLikesInfo?.status) {
+    if (!postLikesInfo[0]?.status) {
       const newPostLikeInfo = new PostLikeEntity();
       newPostLikeInfo.postId = postId;
       newPostLikeInfo.userId = userId;
       newPostLikeInfo.userLogin = user!.login;
-      newPostLikeInfo.status = inputLikeStatus as string;
-      newPostLikeInfo.createdAt = new Date().toISOString();
-      const createLikeInfo =
+      newPostLikeInfo.status = inputLikeStatus;
+      const insertedLikeInfo =
         await this.postsLikeInfoRepository.createNewLikeInfo(newPostLikeInfo);
       const updateLikesCount =
-        await this.postsRepository.updateAddPostLikesCount(
+        await this.postsLikeInfoRepository.updateAddPostLikesCount(
           postId,
           inputLikeStatus,
         );
-      return createLikeInfo && updateLikesCount;
+      return insertedLikeInfo && updateLikesCount;
     }
     const updateLikeInfo =
       await this.postsLikeInfoRepository.updatePostLikeInfo(
@@ -128,12 +95,11 @@ export class PostsService {
         inputLikeStatus,
       );
     const updateLikesCount =
-      await this.postsRepository.updateExistPostLikesCount(
+      await this.postsLikeInfoRepository.updateExistPostLikesCount(
         postId,
-        postLikesInfo.status as LikeStatus,
+        postLikesInfo.status,
         inputLikeStatus,
       );
     return updateLikeInfo && updateLikesCount;
   }
 }
-*/

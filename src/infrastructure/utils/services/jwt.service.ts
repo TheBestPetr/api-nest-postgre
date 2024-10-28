@@ -4,14 +4,14 @@ import { SETTINGS } from '../../../settings/app.settings';
 export class JwtService {
   createAccessJWTToken(userId: string) {
     return jwt.sign({ userId: userId }, SETTINGS.JWT_SECRET, {
-      expiresIn: '10s',
+      expiresIn: '5m',
     });
   }
 
   getUserIdByToken(token: string) {
     try {
       const result: any = jwt.verify(token, SETTINGS.JWT_SECRET);
-      return result.userId.toString();
+      return result.userId;
     } catch (e) {
       return null;
     }
@@ -21,7 +21,7 @@ export class JwtService {
     return jwt.sign(
       { userId: userId, deviceId: deviceId },
       SETTINGS.JWT_SECRET,
-      { expiresIn: '20s' },
+      { expiresIn: '5m' },
     );
   }
 
@@ -40,7 +40,7 @@ export class JwtService {
   getDeviceIdByToken(token: string) {
     try {
       const result: any = jwt.verify(token, SETTINGS.JWT_SECRET);
-      return result.deviceId.toString();
+      return result.deviceId;
     } catch (e) {
       return null;
     }

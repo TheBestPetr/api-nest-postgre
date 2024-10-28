@@ -12,26 +12,24 @@ export class BlogsService {
     createdBlog.name = input.name;
     createdBlog.description = input.description;
     createdBlog.websiteUrl = input.websiteUrl;
-    createdBlog.createdAt = new Date().toISOString();
     createdBlog.isMembership = false;
+    createdBlog.createdAt = new Date().toISOString();
     const insertedBlog = await this.blogsRepository.createBlog(createdBlog);
     return {
-      id: insertedBlog.id.toString(),
-      name: createdBlog.name,
-      description: createdBlog.description,
-      websiteUrl: createdBlog.websiteUrl,
-      createdAt: createdBlog.createdAt,
-      isMembership: createdBlog.isMembership,
+      id: insertedBlog[0].id,
+      name: insertedBlog[0].name,
+      description: insertedBlog[0].description,
+      websiteUrl: insertedBlog[0].websiteUrl,
+      createdAt: insertedBlog[0].createdAt,
+      isMembership: insertedBlog[0].isMembership,
     };
   }
 
-  async updateBlog(blogId: string, input: BlogInputDto) {
-    const result = await this.blogsRepository.updateBlog(blogId, input);
-    return result.matchedCount === 1;
+  async updateBlog(blogId: string, input: BlogInputDto): Promise<boolean> {
+    return this.blogsRepository.updateBlog(blogId, input);
   }
 
   async deleteBlog(blogId: string): Promise<boolean> {
-    const result = await this.blogsRepository.deleteBlog(blogId);
-    return result.deletedCount === 1;
+    return this.blogsRepository.deleteBlog(blogId);
   }
 }

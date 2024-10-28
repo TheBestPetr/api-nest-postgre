@@ -30,7 +30,8 @@ export class CommentsController {
     private readonly commentsService: CommentsService,
     private readonly commentsQueryRepository: CommentsQueryRepository,
   ) {}
-  @UseGuards(BearerAuthWithout401)
+
+  //@UseGuards(BearerAuthWithout401)
   @Get(':commentId')
   @HttpCode(200)
   async findCommentById(@Param('commentId') commentId: string, @Request() req) {

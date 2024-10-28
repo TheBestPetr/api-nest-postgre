@@ -12,20 +12,8 @@ import {
   passwordRecoveryCodeIsExist,
 } from './infrastructure/decorators/auth.custom.decorator';
 import { ReqIpCounter } from './infrastructure/guards/req-counter/req.ip.counter';
-
-/*const postsProviders = [
-  PostsRepository,
-  PostsService,
-  PostsQueryRepository,
-  blogIdIsExist,
-];
-
-const commentsProvider = [
-  CommentsService,
-  CommentsRepository,
-  CommentsQueryRepository,
-  CommentsLikeInfoRepository,
-];*/
+import { BlogModule } from './features/blogs/blog.module';
+import { PostModule } from './features/posts/post.module';
 
 @Module({
   imports: [
@@ -42,6 +30,8 @@ const commentsProvider = [
     AuthModule,
     DeviceModule,
     UserModule,
+    BlogModule,
+    PostModule,
   ],
 
   providers: [

@@ -12,41 +12,36 @@ export class UsersRepository {
   constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async createUser(inputUser: User, inputEmailConfirmation: EmailConfirmation) {
-    await this.dataSource.query(`
+    const insertedUserId = await this.dataSource.query(`
         INSERT INTO public.users(
             login, 
             "passwordHash", 
-            email, 
-            "createdAt")
+            email)
             VALUES (
                 '${inputUser.login}',
                 '${inputUser.passwordHash}',
-                '${inputUser.email}',
-                '${inputUser.createdAt}');
+                '${inputUser.email}')
+            RETURNING id;
     `);
-    const createdUserId = await this.dataSource.query(`
-        SELECT id
-            FROM public.users
-            WHERE "login" = '${inputUser.login}' AND "passwordHash" = '${inputUser.passwordHash}'`);
     await this.dataSource.query(`
         INSERT INTO public."usersEmailConfirmation"(
             "userId",
             "isConfirmed")
             VALUES (
-                '${createdUserId[0].id}',
+                '${insertedUserId[0].id}',
                 '${inputEmailConfirmation.isConfirmed}');
     `);
-    return createdUserId[0].id;
+    return insertedUserId[0].id;
   }
 
-  async deleteUser(id: string): Promise<boolean> {
+  async deleteUser(userId: string): Promise<boolean> {
     const isUserEmailConfirmationDeleted = await this.dataSource.query(`
         DELETE FROM public."usersEmailConfirmation"
-            WHERE "userId" = '${id}'
+            WHERE "userId" = '${userId}'
     `);
     const isUserDeleted = await this.dataSource.query(`
         DELETE FROM public.users
-            WHERE "id" = '${id}'
+            WHERE "id" = '${userId}'
     `);
     return isUserEmailConfirmationDeleted[1] === 1 || isUserDeleted[1] === 1;
   }

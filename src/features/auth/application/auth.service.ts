@@ -55,7 +55,6 @@ export class AuthService {
     createdUser.login = input.login;
     createdUser.passwordHash = passwordHash;
     createdUser.email = input.email;
-    createdUser.createdAt = new Date().toISOString();
 
     const userEmailConfirmation = new EmailConfirmation();
     userEmailConfirmation.confirmationCode = randomUUID().toString();
@@ -204,7 +203,6 @@ export class AuthService {
         hours: 1,
         minutes: 1,
       }).toISOString();
-      console.log(userPasswordRecovery);
       const result = await this.usersRepository.passwordRecoveryConfirmation(
         email,
         userPasswordRecovery,

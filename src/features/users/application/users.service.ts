@@ -4,7 +4,6 @@ import { UserInputDto } from '../api/dto/input/user.input.dto';
 import { UserOutputDto } from '../api/dto/output/user.output.dto';
 import { EmailConfirmation, User } from '../domain/user.entity';
 import { BcryptService } from '../../../infrastructure/utils/services/bcrypt.service';
-import { isUUID } from 'class-validator';
 
 @Injectable()
 export class UsersService {
@@ -19,7 +18,6 @@ export class UsersService {
     createdUser.login = input.login;
     createdUser.passwordHash = passwordHash;
     createdUser.email = input.email;
-    createdUser.createdAt = new Date().toISOString();
     const userEmailConfirmation = new EmailConfirmation();
     userEmailConfirmation.confirmationCode = null;
     userEmailConfirmation.expirationDate = null;

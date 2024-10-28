@@ -1,39 +1,29 @@
-/*
 import {
-  Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
+  Request,
   NotFoundException,
   Param,
-  Post,
-  Put,
   Query,
   UseGuards,
-  Request,
-  InternalServerErrorException,
+  Body,
+  Post,
+  UnauthorizedException,
+  Put,
+  NotAcceptableException,
 } from '@nestjs/common';
 import { PostsService } from '../application/posts.service';
 import { PostsQueryRepository } from '../infrastructure/posts.query.repository';
+import { sortNPagingPostQuery } from '../../../infrastructure/utils/query.mappers';
 import {
-  sortNPagingCommentQuery,
-  sortNPagingPostQuery,
-} from '../../../infrastructure/utils/query.mappers';
-import {
-  PostInputDto,
   PostInputLikeStatusDto,
   PostInputQueryDto,
 } from './dto/input/post.input.dto';
-import {
-  CommentInputDto,
-  CommentInputQueryDto,
-} from '../../comments/api/dto/input/comment.input.dto';
+import { isUUID } from 'class-validator';
 import { BearerAuthGuard } from '../../../infrastructure/guards/bearer.auth.guard';
+import { CommentInputDto } from '../../comments/api/dto/input/comment.input.dto';
 import { CommentsService } from '../../comments/application/comments.service';
-import { CommentsQueryRepository } from '../../comments/infrastructure/comments.query.repository';
-import { BasicAuthGuard } from '../../../infrastructure/guards/basic.auth.guard';
-import { BearerAuthWithout401 } from '../../../infrastructure/decorators/bearer.auth.without.401';
 
 @Controller('posts')
 export class PostsController {
@@ -41,67 +31,30 @@ export class PostsController {
     private readonly postsService: PostsService,
     private readonly postsQueryRepository: PostsQueryRepository,
     private readonly commentsService: CommentsService,
-    private readonly commentsQueryRepository: CommentsQueryRepository,
+    //private readonly commentsQueryRepository: CommentsQueryRepository,
   ) {}
 
-  @UseGuards(BearerAuthWithout401)
+  //@UseGuards(BearerAuthWithout401)
   @Get()
   @HttpCode(200)
-  async findPosts(@Request() req, @Query() inputQuery: PostInputQueryDto) {
+  async findPosts(@Query() inputQuery: PostInputQueryDto) {
     const query = sortNPagingPostQuery(inputQuery);
-    const posts = await this.postsQueryRepository.findPosts(query, req.userId);
+    const posts = await this.postsQueryRepository.findPosts(query);
     return posts;
   }
 
-  @UseGuards(BearerAuthWithout401)
+  //@UseGuards(BearerAuthWithout401)
   @Get(':postId')
   @HttpCode(200)
-  async findPostById(@Request() req, @Param('postId') postId: string) {
-    const foundPost = await this.postsQueryRepository.findPostById(
-      postId,
-      req.userId,
-    );
+  async findPostById(@Param('postId') postId: string) {
+    if (!isUUID(postId)) {
+      throw new NotFoundException();
+    }
+    const foundPost = await this.postsQueryRepository.findPostById(postId);
     if (!foundPost) {
       throw new NotFoundException();
     }
     return foundPost;
-  }
-
-  @UseGuards(BasicAuthGuard)
-  @Post()
-  @HttpCode(201)
-  async createPost(@Body() postInputDto: PostInputDto) {
-    const newPost = await this.postsService.createPost(postInputDto);
-    if (!newPost) {
-      throw new NotFoundException();
-    }
-    return newPost;
-  }
-
-  @UseGuards(BasicAuthGuard)
-  @Put(':postId')
-  @HttpCode(204)
-  async updatePost(
-    @Param('postId') postId: string,
-    @Body() postInputDto: PostInputDto,
-  ) {
-    const updatedPost = await this.postsService.updatePost(
-      postId,
-      postInputDto,
-    );
-    if (!updatedPost) {
-      throw new NotFoundException();
-    }
-  }
-
-  @UseGuards(BasicAuthGuard)
-  @Delete(':postId')
-  @HttpCode(204)
-  async deletePost(@Param('postId') postId: string) {
-    const isDelete = await this.postsService.deletePost(postId);
-    if (!isDelete) {
-      throw new NotFoundException();
-    }
   }
 
   @UseGuards(BearerAuthGuard)
@@ -112,6 +65,9 @@ export class PostsController {
     @Param('postId') postId: string,
     @Body() inputLikeType: PostInputLikeStatusDto,
   ) {
+    if (!isUUID(postId)) {
+      throw new NotFoundException();
+    }
     const post = await this.postsQueryRepository.findPostById(postId);
     if (!post) {
       throw new NotFoundException();
@@ -122,7 +78,7 @@ export class PostsController {
       inputLikeType.likeStatus,
     );
     if (!isUpdate) {
-      throw new InternalServerErrorException();
+      throw new NotAcceptableException();
     }
   }
 
@@ -134,11 +90,17 @@ export class PostsController {
     @Param('postId') postId: string,
     @Body() commentInputDto: CommentInputDto,
   ) {
+    if (!isUUID(postId)) {
+      throw new NotFoundException();
+    }
     const post = await this.postsQueryRepository.findPostById(postId);
     if (!post) {
       throw new NotFoundException();
     }
     const commentatorId = req.userId;
+    if (!commentatorId) {
+      throw new UnauthorizedException();
+    }
     const comment = await this.commentsService.createComment(
       commentInputDto,
       commentatorId,
@@ -147,7 +109,7 @@ export class PostsController {
     return comment;
   }
 
-  @UseGuards(BearerAuthWithout401)
+  /*@UseGuards(BearerAuthWithout401)
   @Get(':postId/comments')
   @HttpCode(200)
   async findCommentsByPostIdInParams(
@@ -166,6 +128,5 @@ export class PostsController {
       req.userId,
     );
     return comments;
-  }
+  }*/
 }
-*/
