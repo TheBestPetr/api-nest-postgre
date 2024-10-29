@@ -9,6 +9,8 @@ import { PostsQueryRepository } from '../posts/infrastructure/posts.query.reposi
 import { SaBlogsController } from './api/sa.blogs.controller';
 import { PostsRepository } from '../posts/infrastructure/posts.repository';
 import { BlogsController } from './api/blogs.controller';
+import { UsersQueryRepository } from '../users/infrastructure/users.query.repository';
+import { PostsLikeInfoRepository } from '../posts/infrastructure/posts.like.info.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Blog])],
@@ -20,6 +22,8 @@ import { BlogsController } from './api/blogs.controller';
     PostsService,
     PostsQueryRepository,
     PostsRepository,
+    UsersQueryRepository,
+    PostsLikeInfoRepository,
   ],
   exports: [BlogsQueryRepository],
 })

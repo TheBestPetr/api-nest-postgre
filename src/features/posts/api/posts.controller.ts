@@ -24,6 +24,7 @@ import { isUUID } from 'class-validator';
 import { BearerAuthGuard } from '../../../infrastructure/guards/bearer.auth.guard';
 import { CommentInputDto } from '../../comments/api/dto/input/comment.input.dto';
 import { CommentsService } from '../../comments/application/comments.service';
+import { BearerAuthWithout401 } from '../../../infrastructure/decorators/bearer.auth.without.401';
 
 @Controller('posts')
 export class PostsController {
@@ -34,23 +35,26 @@ export class PostsController {
     //private readonly commentsQueryRepository: CommentsQueryRepository,
   ) {}
 
-  //@UseGuards(BearerAuthWithout401)
+  @UseGuards(BearerAuthWithout401)
   @Get()
   @HttpCode(200)
-  async findPosts(@Query() inputQuery: PostInputQueryDto) {
+  async findPosts(@Request() req, @Query() inputQuery: PostInputQueryDto) {
     const query = sortNPagingPostQuery(inputQuery);
-    const posts = await this.postsQueryRepository.findPosts(query);
+    const posts = await this.postsQueryRepository.findPosts(query, req?.userId);
     return posts;
   }
 
-  //@UseGuards(BearerAuthWithout401)
+  @UseGuards(BearerAuthWithout401)
   @Get(':postId')
   @HttpCode(200)
-  async findPostById(@Param('postId') postId: string) {
+  async findPostById(@Request() req, @Param('postId') postId: string) {
     if (!isUUID(postId)) {
       throw new NotFoundException();
     }
-    const foundPost = await this.postsQueryRepository.findPostById(postId);
+    const foundPost = await this.postsQueryRepository.findPostById(
+      postId,
+      req?.userId,
+    );
     if (!foundPost) {
       throw new NotFoundException();
     }
@@ -65,7 +69,10 @@ export class PostsController {
     @Param('postId') postId: string,
     @Body() inputLikeType: PostInputLikeStatusDto,
   ) {
-    if (!isUUID(postId)) {
+    if (!req.userId) {
+      throw new UnauthorizedException();
+    }
+    if (!isUUID(postId) /* || !isUUID(req.userId)*/) {
       throw new NotFoundException();
     }
     const post = await this.postsQueryRepository.findPostById(postId);

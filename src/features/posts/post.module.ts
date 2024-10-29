@@ -10,6 +10,7 @@ import { CommentsService } from '../comments/application/comments.service';
 import { UsersQueryRepository } from '../users/infrastructure/users.query.repository';
 import { CommentsRepository } from '../comments/infrastructure/comments.repository';
 import { JwtService } from '../../infrastructure/utils/services/jwt.service';
+import { PostsLikeInfoRepository } from './infrastructure/posts.like.info.repository';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Post])],
@@ -22,6 +23,7 @@ import { JwtService } from '../../infrastructure/utils/services/jwt.service';
     CommentsService,
     UsersQueryRepository,
     CommentsRepository,
+    PostsLikeInfoRepository,
     JwtService,
   ],
   exports: [PostsService, PostsQueryRepository, PostsRepository],

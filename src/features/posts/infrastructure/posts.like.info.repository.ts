@@ -1,8 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { Post } from '../domain/post.entity';
-import { PostInputDto } from '../api/dto/input/post.input.dto';
 import { LikeStatus } from '../../../base/types/like.statuses';
 import { PostLikeEntity } from '../domain/post.like.entity';
 
@@ -51,19 +49,19 @@ export class PostsLikeInfoRepository {
   ): Promise<boolean> {
     if (likeStatus === 'Like') {
       await this.dataSource.query(
-        `INSERT INTO public."postsLikesCountInfo"(
-            "postId", "likesCount")
-            VALUES ($1, $2);`,
-        [postId, +1],
+        `UPDATE public."postsLikesCountInfo"
+            SET "likesCount" = "likesCount" + 1
+            WHERE "postId" = $1;`,
+        [postId],
       );
       return true;
     }
     if (likeStatus === 'Dislike') {
       await this.dataSource.query(
-        `INSERT INTO public."postsLikesCountInfo"(
-            "postId", "dislikesCount")
-            VALUES ($1, $2);`,
-        [postId, +1],
+        `UPDATE public."postsLikesCountInfo"
+            SET "dislikesCount" = "dislikesCount" + 1
+            WHERE "postId" = $1;`,
+        [postId],
       );
       return true;
     }
@@ -76,7 +74,7 @@ export class PostsLikeInfoRepository {
     newStatus: LikeStatus,
   ): Promise<boolean> {
     const result = await this.dataSource.query(
-      `UPDATE public."commentsUserLikeInfo"
+      `UPDATE public."postsUserLikeInfo"
             SET status = $1
             WHERE "postId" = $2 AND "userId" = $3;`,
       [newStatus, postId, userId],
@@ -90,36 +88,43 @@ export class PostsLikeInfoRepository {
     newStatus: LikeStatus,
   ): Promise<boolean> {
     if (oldStatus === 'Like' && newStatus === 'Dislike') {
-      await this.dataSource.query(`
-        UPDATE public."commentsLikesCountInfo"
-            SET "likesCount"=?, "dislikesCount"=?
-            WHERE "commentId" = $3;`);
-
-      /*updateOne(
-        { _id: new ObjectId(postId) },
-        { $inc: { 'likesInfo.likesCount': -1, 'likesInfo.dislikesCount': 1 } },
-      ).exec();*/
+      await this.dataSource.query(
+        `
+        UPDATE public."postsLikesCountInfo"
+            SET "likesCount" = "likesCount" - 1, "dislikesCount" = "dislikesCount" + 1
+            WHERE "postId" = $1;`,
+        [postId],
+      );
       return true;
     }
     if (oldStatus === 'Like' && newStatus === 'None') {
-      await this.PostModel.updateOne(
-        { _id: new ObjectId(postId) },
-        { $inc: { 'likesInfo.likesCount': -1 } },
-      ).exec();
+      await this.dataSource.query(
+        `
+        UPDATE public."postsLikesCountInfo"
+            SET "likesCount" = "likesCount" -1
+            WHERE "postId" = $1;`,
+        [postId],
+      );
       return true;
     }
     if (oldStatus === 'Dislike' && newStatus === 'Like') {
-      await this.PostModel.updateOne(
-        { _id: new ObjectId(postId) },
-        { $inc: { 'likesInfo.likesCount': 1, 'likesInfo.dislikesCount': -1 } },
-      ).exec();
+      await this.dataSource.query(
+        `
+        UPDATE public."postsLikesCountInfo"
+            SET "likesCount" = "likesCount" +1, "dislikesCount" = "dislikesCount" -1
+            WHERE "postId" = $1;`,
+        [postId],
+      );
       return true;
     }
     if (oldStatus === 'Dislike' && newStatus === 'None') {
-      await this.PostModel.updateOne(
-        { _id: new ObjectId(postId) },
-        { $inc: { 'likesInfo.dislikesCount': -1 } },
-      ).exec();
+      await this.dataSource.query(
+        `
+        UPDATE public."postsLikesCountInfo"
+            SET "dislikesCount" = "dislikesCount" -1
+            WHERE "postId" = $1;`,
+        [postId],
+      );
       return true;
     }
     return oldStatus === newStatus;

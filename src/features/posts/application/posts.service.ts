@@ -46,6 +46,7 @@ export class PostsService {
     createdPost.blogName = blog!.name;
 
     const insertedPost = await this.postsRepository.createPost(createdPost);
+
     return {
       id: insertedPost[0].id,
       title: insertedPost[0].title,
@@ -97,7 +98,7 @@ export class PostsService {
     const updateLikesCount =
       await this.postsLikeInfoRepository.updateExistPostLikesCount(
         postId,
-        postLikesInfo.status,
+        postLikesInfo[0].status,
         inputLikeStatus,
       );
     return updateLikeInfo && updateLikesCount;

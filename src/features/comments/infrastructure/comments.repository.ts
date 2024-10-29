@@ -19,7 +19,6 @@ export class CommentsRepository {
             RETURNING *`,
       [inputComment.postId, inputComment.content],
     );
-    console.log(insertedComment[0].id);
 
     await this.dataSource.query(
       `INSERT INTO public."commentsCommentatorInfo"(

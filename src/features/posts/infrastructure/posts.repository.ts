@@ -24,6 +24,11 @@ export class PostsRepository {
             )
             RETURNING *
     `);
+    await this.dataSource.query(`
+        INSERT INTO public."postsLikesCountInfo"(
+            "postId", "likesCount", "dislikesCount")
+            VALUES ('${insertedPost[0].id}', 0, 0);`);
+
     return insertedPost;
   }
 
