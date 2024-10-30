@@ -24,11 +24,6 @@ export class PostsRepository {
             )
             RETURNING *
     `);
-    await this.dataSource.query(`
-        INSERT INTO public."postsLikesCountInfo"(
-            "postId", "likesCount", "dislikesCount")
-            VALUES ('${insertedPost[0].id}', 0, 0);`);
-
     return insertedPost;
   }
 
@@ -42,7 +37,7 @@ export class PostsRepository {
         SET title = '${input.title}', 
             "shortDescription" = '${input.shortDescription}', 
             content = '${input.content}'
-        WHERE "blogId" = '${blogId}' AND "id" = '${postId}';`);
+        WHERE "blogId" = '${blogId}' AND "id" = '${postId}'`);
   }
 
   async deletePost(blogId: string, postId: string): Promise<boolean> {

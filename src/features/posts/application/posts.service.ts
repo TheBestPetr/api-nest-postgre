@@ -22,10 +22,6 @@ export class PostsService {
     postId: string,
     input: PostInputBlogDto,
   ): Promise<boolean> {
-    const blog = await this.blogsQueryRepository.findBlogById(blogId);
-    if (!blog) {
-      return false;
-    }
     return this.postsRepository.updatePost(blogId, postId, input);
   }
 

@@ -1,28 +1,28 @@
-/*
 import {
+  Body,
   Controller,
+  Delete,
+  ForbiddenException,
   Get,
   HttpCode,
+  InternalServerErrorException,
+  NotAcceptableException,
   NotFoundException,
   Param,
-  UseGuards,
-  Request,
   Put,
-  Body,
-  ForbiddenException,
-  Delete,
-  InternalServerErrorException,
+  Request,
+  UnauthorizedException,
+  UseGuards,
 } from '@nestjs/common';
 import { CommentsService } from '../application/comments.service';
 import { CommentsQueryRepository } from '../infrastructure/comments.query.repository';
-import { PostsQueryRepository } from '../../posts/infrastructure/posts.query.repository';
 import { BearerAuthWithout401 } from '../../../infrastructure/decorators/bearer.auth.without.401';
+import { isUUID } from 'class-validator';
 import { BearerAuthGuard } from '../../../infrastructure/guards/bearer.auth.guard';
 import {
   CommentInputDto,
   CommentInputLikeStatusDto,
 } from './dto/input/comment.input.dto';
-import { LikeStatus } from '../../../base/types/like.statuses';
 
 @Controller('comments')
 export class CommentsController {
@@ -31,10 +31,13 @@ export class CommentsController {
     private readonly commentsQueryRepository: CommentsQueryRepository,
   ) {}
 
-  //@UseGuards(BearerAuthWithout401)
+  @UseGuards(BearerAuthWithout401)
   @Get(':commentId')
   @HttpCode(200)
   async findCommentById(@Param('commentId') commentId: string, @Request() req) {
+    if (!isUUID(commentId)) {
+      throw new NotFoundException();
+    }
     const comment = await this.commentsQueryRepository.findCommentById(
       commentId,
       req.userId,
@@ -53,9 +56,12 @@ export class CommentsController {
     @Param('commentId') commentId: string,
     @Body() commentInputDto: CommentInputDto,
   ) {
-    const comment =
+    if (!isUUID(commentId)) {
+      throw new NotFoundException();
+    }
+    const isCommentExist =
       await this.commentsQueryRepository.findCommentById(commentId);
-    if (!comment) {
+    if (!isCommentExist) {
       throw new NotFoundException();
     }
     const isUserCanDoThis = await this.commentsService.isUserCanDoThis(
@@ -65,12 +71,12 @@ export class CommentsController {
     if (!isUserCanDoThis) {
       throw new ForbiddenException();
     }
-    const updatedComment = await this.commentsService.update(
+    const updatedComment = await this.commentsService.updateComment(
       commentInputDto,
       commentId,
     );
     if (!updatedComment) {
-      throw new NotFoundException();
+      throw new NotAcceptableException();
     }
   }
 
@@ -81,6 +87,12 @@ export class CommentsController {
     @Request() req,
     @Param('commentId') commentId: string,
   ) {
+    if (!req.userId) {
+      throw new UnauthorizedException();
+    }
+    if (!isUUID(commentId)) {
+      throw new NotFoundException();
+    }
     const comment =
       await this.commentsQueryRepository.findCommentById(commentId);
     if (!comment) {
@@ -107,6 +119,12 @@ export class CommentsController {
     @Param('commentId') commentId: string,
     @Body() inputLikeStatus: CommentInputLikeStatusDto,
   ) {
+    if (!req.userId) {
+      throw new UnauthorizedException();
+    }
+    if (!isUUID(commentId)) {
+      throw new NotFoundException();
+    }
     const comment =
       await this.commentsQueryRepository.findCommentById(commentId);
     if (!comment) {
@@ -115,11 +133,10 @@ export class CommentsController {
     const isUpdate = await this.commentsService.updateLikeStatus(
       commentId,
       req.userId,
-      inputLikeStatus.likeStatus as LikeStatus,
+      inputLikeStatus.likeStatus,
     );
     if (!isUpdate) {
       throw new InternalServerErrorException();
     }
   }
 }
-*/

@@ -1,18 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class PostLikesCount {
-  @Column({ type: 'uuid' })
-  postId: string;
-
-  @Column({ type: 'integer' })
-  likesCount: number;
-
-  @Column({ type: 'integer' })
-  dislikesCount: number;
-}
-
-@Entity()
 export class Post {
   @PrimaryGeneratedColumn()
   id: string;
@@ -34,4 +22,10 @@ export class Post {
 
   @Column({ type: 'timestamp with time zone' })
   createdAt: string;
+
+  @Column({ type: 'integer' })
+  likesCount: number;
+
+  @Column({ type: 'integer' })
+  dislikesCount: number;
 }

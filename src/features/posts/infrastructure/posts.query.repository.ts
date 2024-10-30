@@ -7,10 +7,14 @@ import {
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { LikeStatus } from '../../../base/types/like.statuses';
+import { PostsLikeInfoRepository } from './posts.like.info.repository';
 
 @Injectable()
 export class PostsQueryRepository {
-  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
+  constructor(
+    @InjectDataSource() private readonly dataSource: DataSource,
+    private readonly postsLikesInfoRepository: PostsLikeInfoRepository,
+  ) {}
   async findPostsByBlogIdInParams(
     query: PostInputQueryDto,
     blogId: string,
@@ -57,21 +61,58 @@ export class PostsQueryRepository {
     userId?: string,
   ): Promise<PostOutputQueryDto> {
     const items = await this.dataSource.query(
-      `SELECT id, title, "shortDescription", content, "blogId", "blogName", "createdAt"
+      `SELECT id, title, "shortDescription", content, "blogId", "blogName", "createdAt", "likesCount", "dislikesCount"
       FROM public.posts
       ORDER BY "${query.sortBy}" ${query.sortDirection}, "id" ASC
       LIMIT $1 OFFSET $2`,
       [query.pageSize, (query.pageNumber - 1) * query.pageSize],
     );
+
     const totalCountResult = await this.dataSource.query(
       `SELECT COUNT(*) FROM public.posts`,
     );
     const totalCount = parseInt(totalCountResult[0].count, 10);
+
+    const postIdsArr = items.map((post) => post.id);
+    const newestLikes = await this.dataSource.query(
+      `
+      SELECT "postId", "userId", "userLogin", status, "createdAt"
+        FROM public."postsUserLikeInfo"
+        WHERE "postId" = ANY($1) AND status = 'Like'
+        ORDER BY "createdAt" DESC`,
+      [postIdsArr],
+    );
+    const groupedLikes = postIdsArr.reduce((acc, postId) => {
+      acc[postId] = newestLikes
+        .filter((likeInfo) => likeInfo.postId === postId)
+        .slice(0, 3)
+        .map((like) => ({
+          addedAt: like.createdAt,
+          userId: like.userId,
+          login: like.userLogin,
+        }));
+      return acc;
+    }, {});
+
+    const status = userId
+      ? await this.dataSource.query(
+          `
+        SELECT "postId", status
+            FROM public."postsUserLikeInfo"
+            WHERE "postId" = ANY($1) AND "userId" = $2`,
+          [postIdsArr, userId],
+        )
+      : [];
+    const userLikesStatusMap = status.reduce((acc, like) => {
+      acc[like.postId] = like.status;
+      return acc;
+    }, {});
+
     return {
       pagesCount: Math.ceil(totalCount / query.pageSize),
       page: query.pageNumber,
       pageSize: query.pageSize,
-      totalCount: totalCount as number,
+      totalCount: totalCount,
       items: items.map((post) => ({
         id: post.id,
         title: post.title,
@@ -81,27 +122,25 @@ export class PostsQueryRepository {
         blogName: post.blogName,
         createdAt: post.createdAt,
         extendedLikesInfo: {
-          likesCount: 0,
-          dislikesCount: 0,
-          myStatus: 'None',
-          newestLikes: [],
+          likesCount: post.likesCount,
+          dislikesCount: post.dislikesCount,
+          myStatus: userLikesStatusMap[post.id] || 'None',
+          newestLikes: groupedLikes[post.id] || [],
         },
       })),
     };
   }
-
   async findPostById(
     postId: string,
     userId?: string,
   ): Promise<PostOutputDto | null> {
     const post = await this.dataSource.query(`
-        SELECT id, title, "shortDescription", content, "blogId", "blogName", "createdAt"
+        SELECT id, title, "shortDescription", content, "blogId", "blogName", "createdAt", "likesCount", "dislikesCount"
         FROM public.posts
         WHERE "id" = '${postId}';`);
-    const postLikesCount = await this.dataSource.query(`
-        SELECT "likesCount", "dislikesCount"
-            FROM public."postsLikesCountInfo"
-            WHERE "postId" = '${post[0].id}'`);
+    if (post.length === 0) {
+      return null;
+    }
     let status = 'None';
     if (userId) {
       const postLikeStatus = await this.dataSource.query(`
@@ -111,9 +150,9 @@ export class PostsQueryRepository {
       status = postLikeStatus[0].status;
     }
     const newestLikes = await this.dataSource.query(`
-        SELECT "postId", "userId", "userLogin", status, "createdAt"
+      SELECT "postId", "userId", "userLogin", status, "createdAt"
             FROM public."postsUserLikeInfo"
-            WHERE "postId" = '${post[0].id}' AND "status" = 'Like'
+            WHERE "postId" = '${postId}' AND "status" = 'Like'
             ORDER BY "createdAt" DESC
             LIMIT 3`);
     if (post.length > 0) {
@@ -126,14 +165,15 @@ export class PostsQueryRepository {
         blogName: post[0].blogName,
         createdAt: post[0].createdAt,
         extendedLikesInfo: {
-          likesCount: postLikesCount[0].likesCount,
-          dislikesCount: postLikesCount[0].dislikesCount,
+          likesCount: post[0].likesCount,
+          dislikesCount: post[0].dislikesCount,
           myStatus: status as LikeStatus,
-          newestLikes: newestLikes.map((like) => ({
-            addedAt: like.createdAt,
-            userId: like.userId,
-            login: like.userLogin,
-          })),
+          newestLikes:
+            newestLikes.map((like) => ({
+              addedAt: like.createdAt,
+              userId: like.userId,
+              login: like.userLogin,
+            })) || [],
         },
       };
     }

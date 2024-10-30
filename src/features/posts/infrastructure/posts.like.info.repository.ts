@@ -32,35 +32,24 @@ export class PostsLikeInfoRepository {
     );
   }
 
-  /*async findNewestLikes(postId: string): Promise<PostLikeEntity[] | null> {
-    const newestLikes = await this.PostLikeInfoModel.find({
-      postId: postId,
-      status: 'Like',
-    })
-      .sort({ createdAt: -1 })
-      .limit(3)
-      .exec();
-    return newestLikes.length > 0 ? newestLikes : null;
-  }*/
-
   async updateAddPostLikesCount(
     postId: string,
     likeStatus: LikeStatus,
   ): Promise<boolean> {
     if (likeStatus === 'Like') {
       await this.dataSource.query(
-        `UPDATE public."postsLikesCountInfo"
+        `UPDATE public.posts
             SET "likesCount" = "likesCount" + 1
-            WHERE "postId" = $1;`,
+            WHERE "id" = $1;`,
         [postId],
       );
       return true;
     }
     if (likeStatus === 'Dislike') {
       await this.dataSource.query(
-        `UPDATE public."postsLikesCountInfo"
+        `UPDATE public.posts
             SET "dislikesCount" = "dislikesCount" + 1
-            WHERE "postId" = $1;`,
+            WHERE "id" = $1;`,
         [postId],
       );
       return true;
@@ -90,9 +79,9 @@ export class PostsLikeInfoRepository {
     if (oldStatus === 'Like' && newStatus === 'Dislike') {
       await this.dataSource.query(
         `
-        UPDATE public."postsLikesCountInfo"
+        UPDATE public.posts
             SET "likesCount" = "likesCount" - 1, "dislikesCount" = "dislikesCount" + 1
-            WHERE "postId" = $1;`,
+            WHERE "id" = $1;`,
         [postId],
       );
       return true;
@@ -100,9 +89,9 @@ export class PostsLikeInfoRepository {
     if (oldStatus === 'Like' && newStatus === 'None') {
       await this.dataSource.query(
         `
-        UPDATE public."postsLikesCountInfo"
+        UPDATE public.posts
             SET "likesCount" = "likesCount" -1
-            WHERE "postId" = $1;`,
+            WHERE "id" = $1;`,
         [postId],
       );
       return true;
@@ -110,9 +99,9 @@ export class PostsLikeInfoRepository {
     if (oldStatus === 'Dislike' && newStatus === 'Like') {
       await this.dataSource.query(
         `
-        UPDATE public."postsLikesCountInfo"
+        UPDATE public.posts
             SET "likesCount" = "likesCount" +1, "dislikesCount" = "dislikesCount" -1
-            WHERE "postId" = $1;`,
+            WHERE "id" = $1;`,
         [postId],
       );
       return true;
@@ -120,9 +109,9 @@ export class PostsLikeInfoRepository {
     if (oldStatus === 'Dislike' && newStatus === 'None') {
       await this.dataSource.query(
         `
-        UPDATE public."postsLikesCountInfo"
+        UPDATE public.posts
             SET "dislikesCount" = "dislikesCount" -1
-            WHERE "postId" = $1;`,
+            WHERE "id" = $1;`,
         [postId],
       );
       return true;

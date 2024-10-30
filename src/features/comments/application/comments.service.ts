@@ -3,15 +3,19 @@ import { CommentsRepository } from '../infrastructure/comments.repository';
 import { CommentInputDto } from '../api/dto/input/comment.input.dto';
 import { CommentOutputDto } from '../api/dto/output/comment.output.dto';
 import { UsersQueryRepository } from '../../users/infrastructure/users.query.repository';
-import { Comment, CommentatorInfo, LikesInfo } from '../domain/comment.entity';
+import { Comment, CommentatorInfo } from '../domain/comment.entity';
+import { CommentsQueryRepository } from '../infrastructure/comments.query.repository';
+import { LikeStatus } from '../../../base/types/like.statuses';
+import { CommentsLikeInfoRepository } from '../infrastructure/comments.like.info.repository';
+import { CommentLikeEntity } from '../domain/comment.like.entity';
 
 @Injectable()
 export class CommentsService {
   constructor(
     private readonly commentsRepository: CommentsRepository,
-    //private readonly commentsQueryRepository: CommentsQueryRepository,
+    private readonly commentsQueryRepository: CommentsQueryRepository,
     private readonly usersQueryRepository: UsersQueryRepository,
-    //private readonly commentLikeInfoRepository: CommentsLikeInfoRepository,
+    private readonly commentLikeInfoRepository: CommentsLikeInfoRepository,
   ) {}
 
   async createComment(
@@ -29,14 +33,9 @@ export class CommentsService {
     commentatorInfo.userId = user.userId;
     commentatorInfo.userLogin = user.login;
 
-    const likesInfo = new LikesInfo();
-    likesInfo.likesCount = 0;
-    likesInfo.dislikesCount = 0;
-
     const insertedComment = await this.commentsRepository.createComment(
       newComment,
       commentatorInfo,
-      likesInfo,
     );
     return {
       id: insertedComment.id,
@@ -54,20 +53,18 @@ export class CommentsService {
     };
   }
 
-  /*async update(input: CommentInputDto, commentId: string): Promise<boolean> {
-    const result = await this.commentsRepository.updateComment(
-      input,
-      commentId,
-    );
-    return result.matchedCount === 1;
+  async updateComment(
+    input: CommentInputDto,
+    commentId: string,
+  ): Promise<boolean> {
+    return this.commentsRepository.updateComment(input, commentId);
   }
 
   async delete(commentId: string): Promise<boolean> {
-    const result = await this.commentsRepository.delete(commentId);
-    return result.deletedCount === 1;
-  }*/
+    return this.commentsRepository.deleteComment(commentId);
+  }
 
-  /*  async isUserCanDoThis(userId: string, commentId: string): Promise<boolean> {
+  async isUserCanDoThis(userId: string, commentId: string): Promise<boolean> {
     const comment =
       await this.commentsQueryRepository.findCommentById(commentId);
     return userId === comment?.commentatorInfo.userId;
@@ -83,17 +80,19 @@ export class CommentsService {
         commentId,
         userId,
       );
-    if (!commentLikeInfo?.status) {
+    const user = await this.usersQueryRepository.findUserById(userId);
+    console.log(user);
+    if (!commentLikeInfo[0]?.status) {
       const newCommentLikeInfo = new CommentLikeEntity();
       newCommentLikeInfo.commentId = commentId;
-      newCommentLikeInfo.userId = userId;
+      newCommentLikeInfo.userId = user.userId;
       newCommentLikeInfo.status = inputLikeStatus;
       const createLikeInfo =
         await this.commentLikeInfoRepository.createNewLikeInfo(
           newCommentLikeInfo,
         );
       const updateLikesCount =
-        await this.commentsRepository.updateAddCommentLikesCount(
+        await this.commentLikeInfoRepository.updateAddCommentLikesCount(
           commentId,
           inputLikeStatus,
         );
@@ -106,11 +105,11 @@ export class CommentsService {
         inputLikeStatus,
       );
     const updateLikesCount =
-      await this.commentsRepository.updateExistCommentLikesCount(
+      await this.commentLikeInfoRepository.updateExistCommentLikesCount(
         commentId,
         commentLikeInfo.status as LikeStatus,
         inputLikeStatus,
       );
     return updateLikeInfo && updateLikesCount;
-  }*/
+  }
 }

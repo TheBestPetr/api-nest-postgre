@@ -14,6 +14,7 @@ import {
 import { ReqIpCounter } from './infrastructure/guards/req-counter/req.ip.counter';
 import { BlogModule } from './features/blogs/blog.module';
 import { PostModule } from './features/posts/post.module';
+import { CommentModule } from './features/comments/comment.module';
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { PostModule } from './features/posts/post.module';
     UserModule,
     BlogModule,
     PostModule,
+    CommentModule,
   ],
 
   providers: [
