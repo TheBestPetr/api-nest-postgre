@@ -131,6 +131,9 @@ export class PostsController {
     @Query() inputQuery: CommentInputQueryDto,
     @Request() req,
   ) {
+    if (!isUUID(postId)) {
+      throw new NotFoundException();
+    }
     const post = await this.postsQueryRepository.findPostById(postId);
     if (!post) {
       throw new NotFoundException();

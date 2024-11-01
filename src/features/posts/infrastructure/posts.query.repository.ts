@@ -7,14 +7,10 @@ import {
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { LikeStatus } from '../../../base/types/like.statuses';
-import { PostsLikeInfoRepository } from './posts.like.info.repository';
 
 @Injectable()
 export class PostsQueryRepository {
-  constructor(
-    @InjectDataSource() private readonly dataSource: DataSource,
-    private readonly postsLikesInfoRepository: PostsLikeInfoRepository,
-  ) {}
+  constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
   async findPostsByBlogIdInParams(
     query: PostInputQueryDto,
     blogId: string,
@@ -130,6 +126,7 @@ export class PostsQueryRepository {
       })),
     };
   }
+
   async findPostById(
     postId: string,
     userId?: string,

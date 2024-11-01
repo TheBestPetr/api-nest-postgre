@@ -15,6 +15,7 @@ import { ReqIpCounter } from './infrastructure/guards/req-counter/req.ip.counter
 import { BlogModule } from './features/blogs/blog.module';
 import { PostModule } from './features/posts/post.module';
 import { CommentModule } from './features/comments/comment.module';
+import { HelloPageModule } from './base/1page/hello.page';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { CommentModule } from './features/comments/comment.module';
     BlogModule,
     PostModule,
     CommentModule,
+    HelloPageModule,
   ],
 
   providers: [
