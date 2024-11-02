@@ -2,7 +2,6 @@ export class UserOutputDto {
   id: string;
   login: string;
   email: string;
-  createdAt: string;
 }
 
 export class UserOutputQueryDto {

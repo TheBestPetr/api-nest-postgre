@@ -31,7 +31,6 @@ export class UsersService {
       id: insertedUserId,
       login: createdUser.login,
       email: createdUser.email,
-      createdAt: createdUser.createdAt,
     };
   }
 
