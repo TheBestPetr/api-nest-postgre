@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './features/auth/auth.module';
 import { DeviceModule } from './features/securityDevices/device.module';
 import { UserModule } from './features/users/user.module';
@@ -16,19 +15,11 @@ import { BlogModule } from './features/blogs/blog.module';
 import { PostModule } from './features/posts/post.module';
 import { CommentModule } from './features/comments/comment.module';
 import { HelloPageModule } from './base/1page/hello.page';
+import { SETTINGS } from './settings/app.settings';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'postgres',
-      password: 'sa',
-      database: 'HwNest',
-      autoLoadEntities: false,
-      synchronize: false,
-    }),
+    SETTINGS.CONNECT_TO_NEON_DB,
     AuthModule,
     DeviceModule,
     UserModule,
