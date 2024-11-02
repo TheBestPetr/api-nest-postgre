@@ -16,10 +16,13 @@ import { PostModule } from './features/posts/post.module';
 import { CommentModule } from './features/comments/comment.module';
 import { HelloPageModule } from './base/1page/hello.page';
 import { SETTINGS } from './settings/app.settings';
+import * as process from 'process';
 
 @Module({
   imports: [
-    SETTINGS.CONNECT_TO_NEON_DB,
+    process.env.DB_CONNECTION === 'NEON'
+      ? SETTINGS.DB_CONNECTION.CONNECT_TO_NEON_DB
+      : SETTINGS.DB_CONNECTION.CONNECT_TO_LOCAL_DB,
     AuthModule,
     DeviceModule,
     UserModule,

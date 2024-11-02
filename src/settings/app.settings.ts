@@ -6,27 +6,30 @@ config();
 
 export const SETTINGS = {
   PORT: process.env.APP_PORT || '',
-  CONNECT_TO_LOCAL_DB: TypeOrmModule.forRoot({
-    type: 'postgres',
-    host: 'localhost',
-    port: 5432,
-    username: 'postgres',
-    password: 'sa',
-    database: 'HwNest',
-    autoLoadEntities: false,
-    synchronize: false,
-  }),
-  CONNECT_TO_NEON_DB: TypeOrmModule.forRoot({
-    type: 'postgres',
-    url: process.env.NEON_POSTGRESQL_URL || '',
-    autoLoadEntities: false,
-    synchronize: false,
-    extra: {
-      ssl: {
-        rejectUnauthorized: false,
+  DB_CONNECTION: {
+    CONNECT_TO_LOCAL_DB: TypeOrmModule.forRoot({
+      type: 'postgres',
+      host: 'localhost',
+      port: 5432,
+      username: 'postgres',
+      password: 'sa',
+      database: 'HwNest',
+      autoLoadEntities: false,
+      synchronize: false,
+    }),
+    CONNECT_TO_NEON_DB: TypeOrmModule.forRoot({
+      type: 'postgres',
+      url: process.env.NEON_POSTGRESQL_URL || '',
+      autoLoadEntities: false,
+      synchronize: false,
+      extra: {
+        ssl: {
+          rejectUnauthorized: false,
+        },
       },
-    },
-  }),
+    }),
+  },
+
   NODEMAILER: {
     USER: process.env.EMAIL_ACCOUNT_USER,
     PASSWORD: process.env.EMAIL_ACCOUNT_PASSWORD,
