@@ -144,7 +144,7 @@ export class PostsQueryRepository {
         SELECT status
             FROM public."postsUserLikeInfo"
             WHERE "postId" = '${post[0].id}' AND "userId" = '${userId}'`);
-      status = postLikeStatus[0].status;
+      status = postLikeStatus.length > 0 ? postLikeStatus[0].status : 'None';
     }
     const newestLikes = await this.dataSource.query(`
       SELECT "postId", "userId", "userLogin", status, "createdAt"

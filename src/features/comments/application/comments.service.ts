@@ -81,7 +81,6 @@ export class CommentsService {
         userId,
       );
     const user = await this.usersQueryRepository.findUserById(userId);
-    console.log(user);
     if (!commentLikeInfo[0]?.status) {
       const newCommentLikeInfo = new CommentLikeEntity();
       newCommentLikeInfo.commentId = commentId;

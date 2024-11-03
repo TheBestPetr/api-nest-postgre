@@ -39,7 +39,8 @@ export class CommentsQueryRepository {
         SELECT status
             FROM public."commentsUserLikeInfo"
             WHERE "commentId" = '${comment[0].id}' AND "userId" = '${userId}'`);
-      status = commentLikeStatus[0].status;
+      status =
+        commentLikeStatus.length > 0 ? commentLikeStatus[0].status : 'None';
     }
     if (comment.length > 0) {
       return {
