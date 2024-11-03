@@ -17,7 +17,7 @@ export class PostsQueryRepository {
     userId?: string,
   ): Promise<PostOutputQueryDto> {
     const items = await this.dataSource.query(
-      `SELECT id, title, "shortDescription", content, "blogId", "blogName", "createdAt"
+      `SELECT id, title, "shortDescription", content, "blogId", "blogName", "createdAt", "likesCount", "dislikesCount"
       FROM public.posts
       WHERE "blogId" = $1
       ORDER BY "${query.sortBy}" ${query.sortDirection}, "id" ASC
