@@ -21,7 +21,7 @@ import * as process from 'process';
   imports: [
     process.env.DB_CONNECTION === 'NEON'
       ? SETTINGS.DB_CONNECTION.CONNECT_TO_NEON_DB
-      : SETTINGS.DB_CONNECTION.CONNECT_TO_LOCAL_DB,
+      : SETTINGS.DB_CONNECTION.CONNECT_TO_TEST_DB,
     AuthModule,
     DeviceModule,
     UserModule,

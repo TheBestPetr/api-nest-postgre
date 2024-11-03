@@ -7,7 +7,7 @@ config();
 export const SETTINGS = {
   PORT: process.env.APP_PORT || '',
   DB_CONNECTION: {
-    CONNECT_TO_LOCAL_DB: TypeOrmModule.forRoot({
+    CONNECT_TO_TEST_DB: TypeOrmModule.forRoot({
       type: 'postgres',
       host: 'localhost',
       port: 5432,
