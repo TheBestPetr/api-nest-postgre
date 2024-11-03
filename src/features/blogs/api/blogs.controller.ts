@@ -1,10 +1,12 @@
 import {
   Controller,
   Get,
+  Request,
   HttpCode,
   NotFoundException,
   Param,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { BlogsQueryRepository } from '../infrastructure/blogs.query.repository';
 import { BlogsService } from '../application/blogs.service';
@@ -17,6 +19,7 @@ import { PostInputQueryDto } from '../../posts/api/dto/input/post.input.dto';
 import { PostsService } from '../../posts/application/posts.service';
 import { PostsQueryRepository } from '../../posts/infrastructure/posts.query.repository';
 import { isUUID } from 'class-validator';
+import { BearerAuthWithout401 } from '../../../infrastructure/decorators/bearer.auth.without.401';
 
 @Controller('blogs')
 export class BlogsController {
@@ -48,9 +51,11 @@ export class BlogsController {
     return foundBlog;
   }
 
+  @UseGuards(BearerAuthWithout401)
   @Get(':blogId/posts')
   @HttpCode(200)
   async findPostsByBlogIdInParams(
+    @Request() req,
     @Query() inputQuery: PostInputQueryDto,
     @Param('blogId') blogId: string,
   ) {
@@ -63,7 +68,11 @@ export class BlogsController {
     }
     const query = sortNPagingPostQuery(inputQuery);
     const foundPosts =
-      await this.postsQueryRepository.findPostsByBlogIdInParams(query, blogId);
+      await this.postsQueryRepository.findPostsByBlogIdInParams(
+        query,
+        blogId,
+        req.userId,
+      );
     if (!foundPosts) {
       throw new NotFoundException();
     }

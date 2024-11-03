@@ -14,6 +14,7 @@ export class PostsQueryRepository {
   async findPostsByBlogIdInParams(
     query: PostInputQueryDto,
     blogId: string,
+    userId?: string,
   ): Promise<PostOutputQueryDto> {
     const items = await this.dataSource.query(
       `SELECT id, title, "shortDescription", content, "blogId", "blogName", "createdAt"
@@ -29,6 +30,41 @@ export class PostsQueryRepository {
       [blogId],
     );
     const totalCount = parseInt(totalCountResult[0].count, 10);
+
+    const postIdsArr = items.map((post) => post.id);
+    const newestLikes = await this.dataSource.query(
+      `
+      SELECT "postId", "userId", "userLogin", status, "createdAt"
+        FROM public."postsUserLikeInfo"
+        WHERE "postId" = ANY($1) AND status = 'Like'
+        ORDER BY "createdAt" DESC`,
+      [postIdsArr],
+    );
+    const groupedLikes = postIdsArr.reduce((acc, postId) => {
+      acc[postId] = newestLikes
+        .filter((likeInfo) => likeInfo.postId === postId)
+        .slice(0, 3)
+        .map((like) => ({
+          addedAt: like.createdAt,
+          userId: like.userId,
+          login: like.userLogin,
+        }));
+      return acc;
+    }, {});
+
+    const status = userId
+      ? await this.dataSource.query(
+          `
+        SELECT "postId", status
+            FROM public."postsUserLikeInfo"
+            WHERE "postId" = ANY($1) AND "userId" = $2`,
+          [postIdsArr, userId],
+        )
+      : [];
+    const userLikesStatusMap = status.reduce((acc, like) => {
+      acc[like.postId] = like.status;
+      return acc;
+    }, {});
     return {
       pagesCount: Math.ceil(totalCount / query.pageSize),
       page: query.pageNumber,
@@ -43,10 +79,10 @@ export class PostsQueryRepository {
         blogName: post.blogName,
         createdAt: post.createdAt,
         extendedLikesInfo: {
-          likesCount: 0,
-          dislikesCount: 0,
-          myStatus: 'None',
-          newestLikes: [],
+          likesCount: post.likesCount,
+          dislikesCount: post.dislikesCount,
+          myStatus: userLikesStatusMap[post.id] || 'None',
+          newestLikes: groupedLikes[post.id] || [],
         },
       })),
     };
