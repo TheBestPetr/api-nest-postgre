@@ -11,6 +11,7 @@ import { PostsRepository } from '../posts/infrastructure/posts.repository';
 import { BlogsController } from './api/blogs.controller';
 import { UsersQueryRepository } from '../users/infrastructure/users.query.repository';
 import { PostsLikeInfoRepository } from '../posts/infrastructure/posts.like.info.repository';
+import { JwtService } from '../../infrastructure/utils/services/jwt.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Blog])],
@@ -24,6 +25,7 @@ import { PostsLikeInfoRepository } from '../posts/infrastructure/posts.like.info
     PostsRepository,
     UsersQueryRepository,
     PostsLikeInfoRepository,
+    JwtService,
   ],
   exports: [BlogsQueryRepository],
 })
