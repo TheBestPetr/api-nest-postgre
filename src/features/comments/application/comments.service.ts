@@ -106,7 +106,7 @@ export class CommentsService {
     const updateLikesCount =
       await this.commentLikeInfoRepository.updateExistCommentLikesCount(
         commentId,
-        commentLikeInfo.status as LikeStatus,
+        commentLikeInfo[0].status as LikeStatus,
         inputLikeStatus,
       );
     return updateLikeInfo && updateLikesCount;

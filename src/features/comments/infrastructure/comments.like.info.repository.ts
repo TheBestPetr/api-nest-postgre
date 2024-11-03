@@ -68,7 +68,7 @@ export class CommentsLikeInfoRepository {
             WHERE "commentId" = $2 AND "userId" = $3;`,
       [newStatus, commentId, userId],
     );
-    return result;
+    return result[1] === 1;
   }
 
   async updateExistCommentLikesCount(
@@ -81,7 +81,7 @@ export class CommentsLikeInfoRepository {
         `
         UPDATE public."commentsLikesCountInfo"
             SET "likesCount" = "likesCount" - 1, "dislikesCount" = "dislikesCount" + 1
-            WHERE "id" = $1;`,
+            WHERE "commentId" = $1;`,
         [commentId],
       );
       return true;
@@ -91,7 +91,7 @@ export class CommentsLikeInfoRepository {
         `
         UPDATE public."commentsLikesCountInfo"
             SET "likesCount" = "likesCount" -1
-            WHERE "id" = $1;`,
+            WHERE "commentId" = $1;`,
         [commentId],
       );
       return true;
@@ -101,7 +101,7 @@ export class CommentsLikeInfoRepository {
         `
         UPDATE public."commentsLikesCountInfo"
             SET "likesCount" = "likesCount" +1, "dislikesCount" = "dislikesCount" -1
-            WHERE "id" = $1;`,
+            WHERE "commentId" = $1;`,
         [commentId],
       );
       return true;
@@ -111,7 +111,7 @@ export class CommentsLikeInfoRepository {
         `
         UPDATE public."commentsLikesCountInfo"
             SET "dislikesCount" = "dislikesCount" -1
-            WHERE "id" = $1;`,
+            WHERE "commentId" = $1;`,
         [commentId],
       );
       return true;
