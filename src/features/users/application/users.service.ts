@@ -23,14 +23,15 @@ export class UsersService {
     userEmailConfirmation.expirationDate = null;
     userEmailConfirmation.isConfirmed = true;
 
-    const insertedUserId = await this.usersRepository.createUser(
+    const insertedUser = await this.usersRepository.createUser(
       createdUser,
       userEmailConfirmation,
     );
     return {
-      id: insertedUserId,
+      id: insertedUser.id,
       login: createdUser.login,
       email: createdUser.email,
+      createdAt: insertedUser.createdAt,
     };
   }
 

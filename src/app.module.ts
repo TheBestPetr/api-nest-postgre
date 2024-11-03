@@ -10,7 +10,6 @@ import {
   loginIsExist,
   passwordRecoveryCodeIsExist,
 } from './infrastructure/decorators/auth.custom.decorator';
-import { ReqIpCounter } from './infrastructure/guards/req-counter/req.ip.counter';
 import { BlogModule } from './features/blogs/blog.module';
 import { PostModule } from './features/posts/post.module';
 import { CommentModule } from './features/comments/comment.module';
@@ -38,7 +37,6 @@ import * as process from 'process';
     passwordRecoveryCodeIsExist,
     emailConfirmationCodeIsExist,
     emailResendingIsEmailConfirmed,
-    ReqIpCounter,
   ],
 
   controllers: [DeleteAllController],

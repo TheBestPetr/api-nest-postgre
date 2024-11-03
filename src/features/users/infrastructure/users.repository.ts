@@ -12,7 +12,7 @@ export class UsersRepository {
   constructor(@InjectDataSource() private dataSource: DataSource) {}
 
   async createUser(inputUser: User, inputEmailConfirmation: EmailConfirmation) {
-    const insertedUserId = await this.dataSource.query(`
+    const insertedUser = await this.dataSource.query(`
         INSERT INTO public.users(
             login, 
             "passwordHash", 
@@ -21,17 +21,17 @@ export class UsersRepository {
                 '${inputUser.login}',
                 '${inputUser.passwordHash}',
                 '${inputUser.email}')
-            RETURNING id;
+            RETURNING *;
     `);
     await this.dataSource.query(`
         INSERT INTO public."usersEmailConfirmation"(
             "userId",
             "isConfirmed")
             VALUES (
-                '${insertedUserId[0].id}',
+                '${insertedUser[0].id}',
                 '${inputEmailConfirmation.isConfirmed}');
     `);
-    return insertedUserId[0].id;
+    return insertedUser[0];
   }
 
   async deleteUser(userId: string): Promise<boolean> {
