@@ -13,7 +13,7 @@ export const SETTINGS = {
       port: 5432,
       username: 'postgres',
       password: 'sa',
-      database: 'HwNest',
+      database: 'nest-postgres',
       autoLoadEntities: false,
       synchronize: false,
     }),
